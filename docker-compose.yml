@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./vocab-backend
+    container_name: vocab-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./vocab-data:/app/data
+    environment:
+      - DB_PATH=/app/data/database.sqlite
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./vocab-app
+      args:
+        - VITE_API_BASE_URL=http://YOUR_VPS_IP_OR_DOMAIN:5000/api
+    container_name: vocab-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

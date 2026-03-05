@@ -1,0 +1,27 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            # 1. Đi tới thư mục chứa project trên VPS
+            cd ~/vocab-project
+            
+            # 2. Pull code mới nhất từ nhánh main
+            git pull origin main
+            
+            # 3. Build lại Image và khởi động lại các container mới thiết lập
+            docker-compose up -d --build
