@@ -10,6 +10,10 @@ RUN npm install
 # Copy application files
 COPY . .
 
+# Pass build variables
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Build the app (Vite runs the build script)
 RUN npm run build
 
