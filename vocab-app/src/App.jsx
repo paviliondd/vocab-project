@@ -140,6 +140,7 @@ function Dashboard({ myWords, learnedWords, setScreen, user, goToReviewTab, dail
   const menus = [
     { screen: "learn", icon: "📖", label: "Learn", sub: "Explore 500+ Oxford words", bg: "var(--teal)", shadow: "rgba(26,107,107,0.3)" },
     { screen: "studying", icon: "📚", label: "Studying", sub: "Words you are learning", bg: "var(--gold)", shadow: "rgba(200,148,58,0.3)" },
+    { screen: "practice_setup", icon: "🃏", label: "Practice", sub: "Flashcards & Quiz", bg: "#8B4513", shadow: "rgba(139,69,19,0.3)" },
     { screen: "mastered", icon: "✅", label: "Mastered", sub: "Words you know well", bg: "var(--green)", shadow: "rgba(26,122,74,0.3)" },
     { screen: "review", icon: "🔁", label: "Review", sub: "Review daily progress", bg: "#C0392B", shadow: "rgba(192,57,43,0.3)" },
   ];
@@ -162,10 +163,10 @@ function Dashboard({ myWords, learnedWords, setScreen, user, goToReviewTab, dail
           <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Pick up where you left off</div>
         </button>
 
-        <button onClick={() => setScreen("studying")} style={{ background: "var(--teal)", padding: 20, borderRadius: 16, border: "none", cursor: "pointer", textAlign: "left", color: "white", transition: "all 0.2s", boxShadow: "0 4px 12px rgba(45,188,140,0.3)" }}>
+        <button onClick={() => setScreen("practice_setup")} style={{ background: "var(--teal)", padding: 20, borderRadius: 16, border: "none", cursor: "pointer", textAlign: "left", color: "white", transition: "all 0.2s", boxShadow: "0 4px 12px rgba(45,188,140,0.3)" }}>
           <div style={{ fontSize: 24, marginBottom: 8 }}>⚡</div>
-          <div style={{ fontWeight: 700, marginBottom: 4 }}>Quick Review</div>
-          <div style={{ fontSize: 13, opacity: 0.9 }}>{myWords.length - learnedWords.size} words waiting</div>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>Practice Mode</div>
+          <div style={{ fontSize: 13, opacity: 0.9 }}>Set up flashcards & quiz</div>
         </button>
       </div>
 
@@ -379,6 +380,76 @@ function Learn({ myWords, setMyWords, learnedWords, setLearnedWords }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ─── PRACTICE SETUP ────────────────────────────────────────────────────────────
+function PracticeSetup({ myWords, learnedWords, startSession }) {
+  const [source, setSource] = useState('studying'); // studying | mastered | all
+  const [amount, setAmount] = useState('10'); // 10 | 20 | 50 | all
+
+  const handleStart = () => {
+    let pool = [];
+    if (source === 'studying') pool = myWords.filter(w => !learnedWords.has(w.id));
+    else if (source === 'mastered') pool = myWords.filter(w => learnedWords.has(w.id));
+    else pool = myWords;
+
+    if (pool.length === 0) {
+      alert("No words found in the selected list. Try adding some words via the Learn section!");
+      return;
+    }
+
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+    const selected = amount === 'all' ? shuffled : shuffled.slice(0, parseInt(amount));
+
+    startSession(selected);
+  };
+
+  return (
+    <div className="fade-up" style={{ maxWidth: 500, margin: "40px auto", padding: "30px 24px", background: "white", borderRadius: 20, boxShadow: "var(--shadow)" }}>
+      <h2 className="lora" style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>🃏 Practice Setup</h2>
+
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-soft)", marginBottom: 8, display: "block" }}>Select Word Source</label>
+        <div style={{ display: "flex", gap: 10 }}>
+          {['studying', 'mastered', 'all'].map(s => (
+            <button key={s} onClick={() => setSource(s)} style={{
+              flex: 1, padding: "10px", borderRadius: 12, border: "2px solid",
+              borderColor: source === s ? "var(--teal)" : "var(--cream2)",
+              background: source === s ? "var(--teal-dim)" : "white",
+              color: source === s ? "var(--teal)" : "var(--ink-soft)",
+              fontWeight: 600, fontSize: 14, cursor: "pointer", textTransform: "capitalize"
+            }}>
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 24 }}>
+        <label style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-soft)", marginBottom: 8, display: "block" }}>Number of Words</label>
+        <div style={{ display: "flex", gap: 10 }}>
+          {['10', '20', '50', 'all'].map(a => (
+            <button key={a} onClick={() => setAmount(a)} style={{
+              flex: 1, padding: "10px", borderRadius: 12, border: "2px solid",
+              borderColor: amount === a ? "var(--teal)" : "var(--cream2)",
+              background: amount === a ? "var(--teal-dim)" : "white",
+              color: amount === a ? "var(--teal)" : "var(--ink-soft)",
+              fontWeight: 600, fontSize: 14, cursor: "pointer", textTransform: "capitalize"
+            }}>
+              {a}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button onClick={handleStart} style={{
+        width: "100%", padding: "14px", borderRadius: 12, border: "none", background: "var(--teal)", color: "white",
+        fontWeight: 700, fontSize: 16, cursor: "pointer", boxShadow: "0 4px 12px rgba(26,107,107,0.3)"
+      }}>
+        Start Flashcards & Quiz 🚀
+      </button>
     </div>
   );
 }
@@ -1251,6 +1322,7 @@ export default function App() {
     { key: "home", icon: "🏠", label: "Home" },
     { key: "learn", icon: "📖", label: "Learn" },
     { key: "studying", icon: "📚", label: "Studying" },
+    { key: "practice_setup", icon: "🃏", label: "Practice" },
     { key: "mastered", icon: "✅", label: "Mastered" },
     { key: "review", icon: "🔁", label: "Review" },
   ];
@@ -1295,6 +1367,7 @@ export default function App() {
             {screen === "mastered" && <WordList title="Mastered List" icon="✅" words={myWords.filter(w => learnedWords.has(w.id))} learnedWords={learnedWords} setLearnedWords={handleSetLearnedWords} setMyWords={handleSetMyWords} isMasteredView={true} />}
             {screen === "review" && <Review myWords={myWords} learnedWords={learnedWords} dailyStats={dailyStats} initialTab={reviewTab} />}
             {screen === "profile" && <Profile user={user} token={token} setUser={setUser} />}
+            {screen === "practice_setup" && <PracticeSetup myWords={myWords} learnedWords={learnedWords} startSession={(words) => { setSessionWords(words); setScreen('session_flashcard'); }} />}
             {screen === "session_flashcard" && <Flashcard myWords={sessionWords || []} learnedWords={learnedWords} setLearnedWords={handleSetLearnedWords} onFinish={() => setScreen("session_quiz")} />}
             {screen === "session_quiz" && <Quiz myWords={sessionWords || []} customPool={sessionWords} onFinish={() => { setSessionWords(null); setScreen("home"); }} />}
           </>
